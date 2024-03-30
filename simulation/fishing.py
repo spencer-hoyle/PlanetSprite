@@ -1,4 +1,5 @@
 import random
+import math
 import csv
 import pandas as pd
 
@@ -11,6 +12,8 @@ from bait import get_catch_booster
 from rod import Rod
 
 MAX_LEVEL = 100
+MAX_XP = int( (100 * (1.1**(MAX_LEVEL-2))) // 1)
+
 
 CAST_LINE_TIMER = 1
 FISH_MOVE_TIMER = 0.2
@@ -28,15 +31,6 @@ BREAK_SUCCESS_ATTEMPT_PROGRESS_DEDUCTION = 10
 
 FISH_CAUGHT_TIMER = 1
 FISH_DISAPPEAR_PROBABILITY = 0.5
-
-def spawn_fish(fish_pool):
-    spawn_weights = [f.common_rate for f in fish_pool]
-    return random.choices(fish_pool, weights = spawn_weights)[0]
-
-def get_weather(season):
-    weights = WEATHER_PROBABILITY.get(season)
-    weather = random.choices(WEATHER, weights=weights)
-    return weather[0]
 
 def simulate_fish_attempt(fish: Fish, rod: Rod, bait: Bait):
     time_to_fish = 0

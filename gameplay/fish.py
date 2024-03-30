@@ -56,7 +56,29 @@ class Fish:
         self.common_rate = round(baseline['common_rate'] + boost['common_rate'],2)
         self.gold_value = int(baseline['gold_value'] * (1 + boost['gold_value']))
 
-def get_fish_pool(fish_list, biome, season, weather, time_of_day)
+def spawn_fish(fish_list):
+    assert isinstance(fish_list, list) and all(isinstance(fish, Fish) for fish in fish_list)
+    spawn_weights = [f.common_rate for f in fish_list]
+    fish = random.choices(fish_list, weights = spawn_weights)
+    return fish[0]
+
+def get_fish_list(self, path):
+    fish_list = []
+    df = pd.read_csv(path)
+    for id, row in df.iterrows():
+        fish = Fish(
+            id = row['ID'] + '-' + row['Tier'][0],
+            tier = row['Tier'],
+            biome = row['Biome'],
+            seasons = [seasons for seasons in  row['Seasons'].split(',')],
+            weather = [weather for weather in  row['Weather'].split(',')],
+            time_of_day = [time_of_day for time_of_day in  row['Time of Day'].split(',')],
+        )
+        fish_list.append(fish)
+    
+    return fish_list
+
+def get_fish_pool(fish_list, biome, season, weather, time_of_day):
     assert isinstance(fish_list, list) and all(isinstance(fish, Fish) for fish in fish_list)
     fish_pool = []
     for fish in self.fish:
@@ -67,9 +89,3 @@ def get_fish_pool(fish_list, biome, season, weather, time_of_day)
             fish_pool.append(fish)
 
     return fish_pool
-
-def spawn_fish(fish_list):
-    assert isinstance(fish_list, list) and all(isinstance(fish, Fish) for fish in fish_list)
-    spawn_weights = [f.common_rate for f in fish_list]
-    fish = random.choices(fish_list, weights = spawn_weights)
-    return fish[0]

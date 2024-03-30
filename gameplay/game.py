@@ -10,22 +10,11 @@ BIOMES = [
     "Cave (Ash)"
 ]
 
-SEASONS = [
-    "Spring",
-    "Summer",
-    "Autumn",
-    "Winter"
-]
+SEASONS = ["Spring", "Summer", "Autumn", "Winter"]
 
-WEATHER = [
-    "Rainy", 
-    "Clear"
-]
+WEATHER = [ "Rainy", "Clear"]
 
-TIME_OF_DAY = [
-    "Day", 
-    "Night"
-]
+TIME_OF_DAY = ["Day", "Night"]
 
 WEATHER_PROBABILITY = {
     "Spring": {

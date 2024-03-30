@@ -1,16 +1,11 @@
-import random
-import csv
-import pandas as pd
-
-from game import WEATHER
-from game import WEATHER_PROBABILITY
-from fish import Fish
-from fish import FishList
-from bait import Bait
-from bait import get_catch_booster
-from rod import Rod
-
-MAX_LEVEL = 100
+from gameplay.fish import Fish
+from gameplay.fish import get_fish_list
+from gameplay.fish import get_fish_pool
+from gameplay.rod import Rod
+from gameplay.bait import Bait
+from gameplay.game import get_weather
+from gameplay.level import STARTING_LEVEL
+from gameplay.level import MAX_LEVEL
 
 CAST_LINE_TIMER = 1
 FISH_MOVE_TIMER = 0.2
@@ -29,38 +24,37 @@ BREAK_SUCCESS_ATTEMPT_PROGRESS_DEDUCTION = 10
 FISH_CAUGHT_TIMER = 1
 FISH_DISAPPEAR_PROBABILITY = 0.5
 
-def spawn_fish(fish_pool):
-    spawn_weights = [f.common_rate for f in fish_pool]
-    return random.choices(fish_pool, weights = spawn_weights)[0]
-
-def get_weather(season):
-    weights = WEATHER_PROBABILITY.get(season)
-    weather = random.choices(WEATHER, weights=weights)
-    return weather[0]
-
 def simulate_fish_attempt(fish: Fish, rod: Rod, bait: Bait):
-    time_to_fish = 0
+    """
+    Simulate a single player fishing, given a fish is near
+
+    Returns:
+        caught (boolean) - Whether or not the fish was caught
+        time (int) - Number of seconds it took to fish
+
+    """
+    time = 0
 
     # cast line
-    time_to_fish += CAST_LINE_TIMER
+    time += CAST_LINE_TIMER
 
     # fish moves to bait
-    time_to_fish += FISH_MOVE_TIMER
+    time += FISH_MOVE_TIMER
 
     # loop until fish bites
     fish_bite_odds = fish.catch_rate + rod.catch_booster + get_catch_booster(fish, bait)
     while random.random() > fish_bite_odds:
-        time_to_fish += round(random.uniform(MIN_DELAY_BEFORE_ATTEMPTING_ANOTHER_BITE, MAX_DELAY_BEFORE_ATTEMPTING_ANOTHER_BITE),1)
+        time += round(random.uniform(MIN_DELAY_BEFORE_ATTEMPTING_ANOTHER_BITE, MAX_DELAY_BEFORE_ATTEMPTING_ANOTHER_BITE),1)
 
     # fish bites
-    time_to_fish += DELAY_FISH_BITE_TIMER
+    time += DELAY_FISH_BITE_TIMER
 
     # idle fishing game
     progress_bar = PROGRESS_BAR_START
     break_rate = fish.break_rate + rod.break_booster
 
     while progress_bar > PROGRESS_BAR_MIN and progress_bar < PROGRESS_BAR_MAX:
-        time_to_fish += IDLE_FISHING_TIMER
+        time += IDLE_FISHING_TIMER
         
         if random.random() > break_rate:
             progress_bar += BREAK_FAIL_ATTEMPT_PROGRESS_ADDITION
@@ -70,24 +64,34 @@ def simulate_fish_attempt(fish: Fish, rod: Rod, bait: Bait):
         # did fish get caught?
         caught = progress_bar >= PROGRESS_BAR_MAX
         if caught:
-            time_to_fish += FISH_CAUGHT_TIMER
+            time += FISH_CAUGHT_TIMER
         
-    return caught, time_to_fish
+    return caught, time
 
-def simulate(biome, season, rod, bait):
+def simulate_biome_season(biome, season, rod, bait):
+    """
+    Simulates fishing experience for a single biome and season, for a given rod and bait.
+    Ends when player reaches max level
+
+    Returns:
+        hours (float) - Number of hours the simulation took
+        xp_per_hour (int) - XP per hour gained
+        gold_per_hour (int) - Gold per hour gained
+    """
+    
     time_of_day = 'Day'
     weather = get_weather(season)
-
-    fish_list = FishList('data/fish.csv')
-    fish_pool = fish_list.get_fish_pool(biome, season, weather, time_of_day)
+    fish_list = get_fish_list('data/fish.csv')
+    fish_pool = get_fish_pool(biome, season, weather, time_of_day)
     fish = None
-    xp = 0
+    xp = STARTING_LEVEL
     gold = 0
     days = 0
     seconds = 0
 
     while xp < MAX_LEVEL:
 
+        # spawn fish if it doesn't exist
         if fish is None:
             fish = spawn_fish(fish_pool)
 
@@ -101,17 +105,17 @@ def simulate(biome, season, rod, bait):
         seconds += time_to_fish
         if seconds >= 900:
             time_of_day = 'Night'
-            fish_pool = fish_pool = fish_list.get_fish_pool(biome, season, weather, time_of_day)
+            fish_pool = fish_pool = get_fish_pool(fish_list, biome, season, weather, time_of_day)
+
         if seconds >= 1800:
             time_of_day = 'Day'
             seconds -= 1800
             days += 1
             weather = get_weather(season)
-            fish_pool = fish_list.get_fish_pool(biome, season, weather, time_of_day)
+            fish_pool = get_fish_pool(fish_list, biome, season, weather, time_of_day)
 
     total_seconds = days * 1800 + seconds
-    print(xp)
     hours = round(total_seconds / 60 / 60, 2)
     xp_per_hour = round(xp/hours)
     gold_per_hour = round(gold/hours)
-    return xp_per_hour, gold_per_hour
+    return hours, xp_per_hour, gold_per_hour
