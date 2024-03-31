@@ -27,11 +27,11 @@ class Fish:
 
     def calculate_attributes(self):
         tier_baseline = {
-            "Common":       {"xp": 100, "catch_rate": 0.80, "break_rate": 0.05, "common_rate": 0.90, "gold_value": 100},
-            "Uncommon":     {"xp": 150, "catch_rate": 0.60, "break_rate": 0.10, "common_rate": 0.75, "gold_value": 150},
-            "Rare":         {"xp": 200, "catch_rate": 0.50, "break_rate": 0.15, "common_rate": 0.50, "gold_value": 200},
-            "Epic":         {"xp": 300, "catch_rate": 0.35, "break_rate": 0.20, "common_rate": 0.40, "gold_value": 400},
-            "Legendary":    {"xp": 500, "catch_rate": 0.20, "break_rate": 0.25, "common_rate": 0.30, "gold_value": 800}
+            "Common":       {"xp": 100, "catch_rate": 0.80, "break_rate": 0.05, "common_rate": 0.90, "gold_value": 30},
+            "Uncommon":     {"xp": 150, "catch_rate": 0.60, "break_rate": 0.10, "common_rate": 0.75, "gold_value": 50},
+            "Rare":         {"xp": 200, "catch_rate": 0.50, "break_rate": 0.15, "common_rate": 0.50, "gold_value": 100},
+            "Epic":         {"xp": 300, "catch_rate": 0.35, "break_rate": 0.20, "common_rate": 0.40, "gold_value": 200},
+            "Legendary":    {"xp": 500, "catch_rate": 0.20, "break_rate": 0.25, "common_rate": 0.30, "gold_value": 400}
         }
 
         biome_boost = {
@@ -54,7 +54,7 @@ class Fish:
         self.catch_rate = round(baseline['catch_rate'] + boost['catch_rate'],2)
         self.break_rate = round(baseline['break_rate'] + boost['break_rate'],2)
         self.common_rate = round(baseline['common_rate'] + boost['common_rate'],2)
-        self.gold_value = int(baseline['gold_value'] * (1 + boost['gold_value']))
+        self.gold_value = round(int(baseline['gold_value'] * (1 + boost['gold_value']))/5) * 5
 
 def spawn_fish(fish_list):
     assert isinstance(fish_list, list) and all(isinstance(fish, Fish) for fish in fish_list)
@@ -62,7 +62,7 @@ def spawn_fish(fish_list):
     fish = random.choices(fish_list, weights = spawn_weights)
     return fish[0]
 
-def get_fish_list(self, path):
+def get_fish_list(path):
     fish_list = []
     df = pd.read_csv(path)
     for id, row in df.iterrows():
@@ -79,13 +79,40 @@ def get_fish_list(self, path):
     return fish_list
 
 def get_fish_pool(fish_list, biome, season, weather, time_of_day):
-    assert isinstance(fish_list, list) and all(isinstance(fish, Fish) for fish in fish_list)
     fish_pool = []
-    for fish in self.fish:
-        if (fish.biome == biome and
-            season in fish.seasons and 
-            weather in fish.weather and 
-            time_of_day in fish.time_of_day):
-            fish_pool.append(fish)
+    if isinstance(fish_list, list) and all(isinstance(fish, Fish) for fish in fish_list):
+        for fish in fish_list:
+            if (fish.biome == biome and
+                season in fish.seasons and 
+                weather in fish.weather and 
+                time_of_day in fish.time_of_day):
+                fish_pool.append(fish)
+        return fish_pool
+    
+    else:
+        for e in fish_list:
+            if (e.get('Biome') == biome 
+                and e.get('Season') == season 
+                and e.get('Weather') == weather 
+                and e.get('Time of Day') == time_of_day
+            ):
+                return e.get("Fish Pool")
 
-    return fish_pool
+def get_fish_pools(fish_list):
+    assert isinstance(fish_list, list) and all(isinstance(fish, Fish) for fish in fish_list)
+    fish_pools = []
+    for biome in BIOMES:
+        for season in SEASONS:
+            for weather in WEATHER:
+                for time_of_day in TIME_OF_DAY:
+                    fish_pool = get_fish_pool(fish_list, biome, season, weather, time_of_day)
+                    entry = {
+                        "Biome": biome,
+                        "Season": season,
+                        "Weather": weather,
+                        "Time of Day": time_of_day,
+                        "Fish Pool": [f for f in fish_pool]
+                    }
+                    fish_pools.append(entry)
+
+    return fish_pools

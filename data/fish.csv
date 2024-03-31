@@ -1,0 +1,36 @@
+ID,Tier,Biome,Seasons,Weather,Time of Day
+Fish1,Common,Small Water Area,"Spring,Summer,Autumn,Winter","Rainy,Clear","Day,Night"
+Fish2,Uncommon,Small Water Area,"Spring,Autumn,Winter","Rainy,Clear",Day
+Fish3,Rare,Small Water Area,"Spring,Summer,Winter",Rainy,Day
+Fish4,Epic,Small Water Area,"Summer,Autumn","Clear,Rainy","Day,Night"
+Fish5,Legendary,Small Water Area,Autumn,Clear,"Night,Day"
+Fish6,Common,Beach,"Summer,Autumn,Winter","Clear,Rainy",Day
+Fish7,Uncommon,Beach,"Spring,Autumn,Winter",Rainy,Night
+Fish8,Rare,Beach,"Spring,Autumn,Winter","Rainy,Clear","Night,Day"
+Fish9,Epic,Beach,"Summer,Autumn","Rainy,Clear",Night
+Fish10,Legendary,Beach,Summer,Clear,"Day,Night"
+Fish11,Common,Desert,"Spring,Summer,Autumn,Winter","Clear,Rainy","Night,Day"
+Fish12,Uncommon,Desert,"Summer,Autumn,Winter",Rainy,"Day,Night"
+Fish13,Rare,Desert,"Summer,Winter",Clear,"Night,Day"
+Fish14,Epic,Desert,"Spring,Summer",Clear,"Night,Day"
+Fish15,Legendary,Desert,"Spring,Summer","Clear,Rainy","Night,Day"
+Fish16,Common,Cave (Leafy),"Spring,Summer,Autumn,Winter","Rainy,Clear","Night,Day"
+Fish17,Uncommon,Cave (Leafy),"Spring,Summer,Winter","Clear,Rainy","Day,Night"
+Fish18,Rare,Cave (Leafy),"Spring,Summer,Winter",Rainy,Day
+Fish19,Epic,Cave (Leafy),"Summer,Winter","Rainy,Clear",Night
+Fish20,Legendary,Cave (Leafy),"Autumn,Winter","Clear,Rainy",Day
+Fish21,Common,Cave (Ice),"Spring,Summer,Winter","Clear,Rainy","Day,Night"
+Fish22,Uncommon,Cave (Ice),"Spring,Autumn,Winter",Clear,"Night,Day"
+Fish23,Rare,Cave (Ice),"Spring,Winter",Rainy,Night
+Fish24,Epic,Cave (Ice),"Summer,Autumn",Rainy,"Day,Night"
+Fish25,Legendary,Cave (Ice),"Spring,Autumn","Clear,Rainy",Day
+Fish26,Common,Cave (Lava),"Spring,Autumn,Winter",Rainy,"Night,Day"
+Fish27,Uncommon,Cave (Lava),"Spring,Summer,Winter","Rainy,Clear",Night
+Fish28,Rare,Cave (Lava),"Summer,Autumn,Winter","Clear,Rainy",Day
+Fish29,Epic,Cave (Lava),"Spring,Winter",Clear,"Night,Day"
+Fish30,Legendary,Cave (Lava),"Spring,Autumn","Rainy,Clear",Night
+Fish31,Common,Cave (Ash),"Spring,Summer,Autumn,Winter",Clear,"Day,Night"
+Fish32,Uncommon,Cave (Ash),"Spring,Summer,Autumn","Rainy,Clear","Day,Night"
+Fish33,Rare,Cave (Ash),"Summer,Winter",Rainy,"Night,Day"
+Fish34,Epic,Cave (Ash),"Spring,Winter",Clear,Night
+Fish35,Legendary,Cave (Ash),"Summer,Autumn",Clear,"Night,Day"

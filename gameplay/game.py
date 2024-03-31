@@ -38,7 +38,7 @@ WEATHER_PROBABILITY = {
 
 def get_weather(season):
     probabilities = WEATHER_PROBABILITY.get(season)
-    options = probabilities.keys()
-    weights = probabilities.items()
+    options = list(probabilities.keys())
+    weights = list(probabilities.values())
     weather = random.choices(options, weights=weights)
     return weather[0]

@@ -5,8 +5,8 @@ ROD_TIERS = ["Default", "Bronze", "Iron", "Silver", "Gold"]
 class Rod:
     def __init__(self, id, tier, catch_booster, break_booster):
         assert tier in ROD_TIERS
-        assert catch_booster <= 1 and catch_booster >= 0
-        assert break_booster <= 1 and break_booster >= 0
+        assert catch_booster <= 1 and catch_booster >= -1
+        assert break_booster <= 1 and break_booster >= -1
 
         self.id = id
         self.tier = tier
