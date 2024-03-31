@@ -101,7 +101,7 @@ with t3:
             'Mid Level 5': ["Rod5", "Bait5"],
             'Ending Level': ["Rod5", "Bait6"],
         }
-    levels_data = [{'Level': level, 'Rod': values[0], 'Bait': values[1]} for level, values in levels.items()]
+    levels_data = [{'order': list(levels.keys()).index(level), 'Level': level, 'Rod': values[0], 'Bait': values[1]} for level, values in levels.items()]
     st.subheader('Levels')
     st.write('Representing rod and bait combination. As players level up, they will use better rods / bait')
     st.dataframe(levels_data)
@@ -196,3 +196,11 @@ with t3:
 
         st.write('Level Results')
         st.dataframe(avg_df[['Level', 'XP / Hour', 'Gold / Hour', 'Fish / Hour', 'Fish Caught']], hide_index= True)
+
+        c1,c2,c3 = st.columns(3)
+        c1.write('XP / Hour')
+        c1.bar_chart(avg_df, x = 'order', y = ['XP / Hour'], use_container_width=True)
+        c2.write('Gold / Hour')
+        c2.bar_chart(avg_df, x = 'order', y = ['Gold / Hour'], use_container_width=True)
+        c3.write('Fish / Hour')
+        c3.bar_chart(avg_df, x = 'order', y = ['Fish / Hour'], use_container_width=True)
