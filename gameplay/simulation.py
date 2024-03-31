@@ -71,7 +71,7 @@ def simulate_fish_attempt(fish: Fish, rod: Rod, bait: Bait):
         
     return caught, time
 
-def simulate_biome_season(biome, season, rod, bait):
+def simulate_biome_season(fish_list, biome, season, rod, bait):
     """
     Simulates fishing experience for a single biome and season, for a given rod and bait.
     Ends when player reaches max level
@@ -85,9 +85,9 @@ def simulate_biome_season(biome, season, rod, bait):
     fish_tiers = {tier: 0 for tier in FISH_TIERS}
     time_of_day = 'Day'
     weather = get_weather(season)
-    fish_list = get_fish_list('data/fish.csv')
     fish_pools = get_fish_pools(fish_list)
     fish_pool = get_fish_pool(fish_pools, biome, season, weather, time_of_day)
+    print(fish_pool)
     fish = None
     xp = STARTING_XP
     gold = 0
@@ -106,7 +106,11 @@ def simulate_biome_season(biome, season, rod, bait):
             xp += fish.xp
             gold += fish.gold_value
             fish_tiers[fish.tier] += 1
+            fish = None
 
+        else:
+            if random.random() <= FISH_DISAPPEAR_PROBABILITY:
+                fish = None
 
         # change time of day and weather
         seconds += time_to_fish

@@ -126,7 +126,7 @@ with t3:
                     progress.progress(sim/total_sims)
                     log.write(f'simulating {level}, {biome}, {season}...')
                     pct.write(str(round((sim/total_sims) * 100,2)) + '%')
-                    hours, xp_per_hour, gold_per_hour, tiers = simulate_biome_season(biome,season, rod_list[0], bait_list[0])
+                    hours, xp_per_hour, gold_per_hour, tiers = simulate_biome_season(fish_list, biome,season, rod_list[0], bait_list[0])
 
                     caught = sum(tiers.values())
                     tier_distribution = [f"{tier} ({round(count/caught * 100)}%)" for tier, count in tiers.items() if count > 0]
@@ -139,7 +139,8 @@ with t3:
                         'XP / Hour': xp_per_hour,
                         'Gold / Hour': gold_per_hour,
                         'Fish / Hour': int(caught / hours),
-                        'Fish Caught': tier_distribution
+                        'Fish Caught': tier_distribution,
+                        'tiers': ['Common|1', 'Common|2'] #[f"{tier}|{count}" for tier, count in tiers.items()]
                         }
                     data.append(entry)
         log.empty()
@@ -148,17 +149,40 @@ with t3:
         st.session_state.simulation_df.to_csv('data/results.csv', index = False)
 
     if st.session_state.simulation_df is None and os.path.exists('data/results.csv'):
-        st.session_state.simulation_df = pd.read_csv('data/results.csv')
+        df = pd.read_csv('data/results.csv')
+        st.session_state.simulation_df = df
         
     if st.session_state.simulation_df is not None:
-        
+
         df = st.session_state.simulation_df
-        c1,c2 = st.columns(2)
-        c1.write('Results')
-        c1.dataframe(df)
-        avg_df = df.groupby('Level').agg({'XP / Hour': 'mean', 'Gold / Hour': 'mean', 'Fish / Hour': 'mean'}).reset_index()
+        st.write('Results')
+
+        c1,c2,c3 = st.columns(3)
+        biome = c1.multiselect('Biome', BIOMES, key = 'result_biome')
+        season = c2.multiselect('Season', SEASONS, key = 'result_season')
+        
+        if biome:
+            df = df[df['Biome'].isin(biome)]
+        if season:
+            df = df[df['Season'].isin(season)]
+
+        def sum_fish_caught(tiers):
+            results = {tier:0 for tier in FISH_TIERS}
+            for t in tiers:
+                t = t.replace("[", "").replace("]", "").replace("'", "").replace(" ", "").split(",")
+                for d in t:
+                    d = d.split('|')
+                    results[d[0]] += int(d[1])
+            caught = sum(results.values())
+            tier_distribution = [f"{tier} ({round(count/caught * 100)}%)" for tier, count in results.items() if count > 0]
+            return tier_distribution
+
+        st.dataframe(df[[c for c in df.columns if c not in ['tiers']]])
+        avg_df = df.groupby('Level').agg({'XP / Hour': 'mean', 'Gold / Hour': 'mean', 'Fish / Hour': 'mean', 'tiers': sum_fish_caught}).reset_index()
         avg_df[['XP / Hour', 'Gold / Hour', 'Fish / Hour']] = avg_df[['XP / Hour', 'Gold / Hour', 'Fish / Hour']].round()
         avg_df['order'] = avg_df['Level'].apply(lambda x: list(levels.keys()).index(x))
         avg_df = avg_df.sort_values(by = 'order', ascending= True)
-        c2.write('High-Level Results')
-        c2.dataframe(avg_df[['Level', 'XP / Hour', 'Gold / Hour', 'Fish / Hour']], hide_index= True)
+        avg_df = avg_df.rename(columns={'tiers': 'Fish Caught'})
+
+        st.write('Level Results')
+        st.dataframe(avg_df[['Level', 'XP / Hour', 'Gold / Hour', 'Fish / Hour', 'Fish Caught']], hide_index= True)
