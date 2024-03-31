@@ -1,6 +1,6 @@
 import random
 
-from gameplay.fish import Fish
+from gameplay.fish import Fish, FISH_TIERS
 from gameplay.fish import get_fish_list
 from gameplay.fish import get_fish_pools, get_fish_pool
 from gameplay.fish import spawn_fish
@@ -80,8 +80,9 @@ def simulate_biome_season(biome, season, rod, bait):
         hours (float) - Number of hours the simulation took
         xp_per_hour (int) - XP per hour gained
         gold_per_hour (int) - Gold per hour gained
+        fish_tiers (dict) - Number of fish caught per tier
     """
-    
+    fish_tiers = {tier: 0 for tier in FISH_TIERS}
     time_of_day = 'Day'
     weather = get_weather(season)
     fish_list = get_fish_list('data/fish.csv')
@@ -104,6 +105,8 @@ def simulate_biome_season(biome, season, rod, bait):
         if caught:
             xp += fish.xp
             gold += fish.gold_value
+            fish_tiers[fish.tier] += 1
+
 
         # change time of day and weather
         seconds += time_to_fish
@@ -122,4 +125,4 @@ def simulate_biome_season(biome, season, rod, bait):
     hours = round(total_seconds / 60 / 60, 2)
     xp_per_hour = round(xp/hours)
     gold_per_hour = round(gold/hours)
-    return hours, xp_per_hour, gold_per_hour
+    return hours, xp_per_hour, gold_per_hour, fish_tiers

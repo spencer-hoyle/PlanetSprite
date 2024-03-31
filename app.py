@@ -1,4 +1,5 @@
 import streamlit as st
+import os
 import pandas as pd
 
 from gameplay.game import BIOMES, SEASONS, WEATHER, TIME_OF_DAY
@@ -89,10 +90,75 @@ with t2:
     
     st.dataframe(fish_pools_df, hide_index= True, use_container_width=True)
 
-#rod = rod_list[0]
-#bait = bait_list[0]
-#biome = BIOMES[0]
-#season = SEASONS[0]
 
-#data = simulate_biome_season(biome, season, rod, bait)
-#print(data)
+with t3:
+
+    levels = {
+            'Starting Level': ["Rod1", "Bait1"],
+            'Mid Level 2': ["Rod2", "Bait2"],
+            'Mid Level 3': ["Rod3", "Bait3"],
+            'Mid Level 4': ["Rod4", "Bait4"],
+            'Mid Level 5': ["Rod5", "Bait5"],
+            'Ending Level': ["Rod5", "Bait6"],
+        }
+    levels_data = [{'Level': level, 'Rod': values[0], 'Bait': values[1]} for level, values in levels.items()]
+    st.subheader('Levels')
+    st.write('Representing rod and bait combination. As players level up, they will use better rods / bait')
+    st.dataframe(levels_data)
+    total_sims = len(levels) * len(BIOMES) * len(SEASONS)
+    sim = 0
+
+    st.session_state.simulation_df = None
+    st.subheader('Simulation')
+    st.write('For every biome and season, simulates a player fishing with a specific rod and bait')
+    if st.button('Run'):
+        log = st.empty()
+        progress = st.empty()
+        pct = st.empty()
+        
+        data = []
+        for level, items in levels.items():
+            rod = [rod for rod in rod_list if rod.id == items[0]]
+            bait = [bait for bait in bait_list if bait.id == items[0]]
+            for biome in BIOMES:
+                for season in SEASONS:
+                    sim += 1
+                    progress.progress(sim/total_sims)
+                    log.write(f'simulating {level}, {biome}, {season}...')
+                    pct.write(str(round((sim/total_sims) * 100,2)) + '%')
+                    hours, xp_per_hour, gold_per_hour, tiers = simulate_biome_season(biome,season, rod_list[0], bait_list[0])
+
+                    caught = sum(tiers.values())
+                    tier_distribution = [f"{tier} ({round(count/caught * 100)}%)" for tier, count in tiers.items() if count > 0]
+
+                    entry = {
+                        'Biome': biome,
+                        'Season': season,
+                        'Level': level,
+                        'Hours to Max Level': hours,
+                        'XP / Hour': xp_per_hour,
+                        'Gold / Hour': gold_per_hour,
+                        'Fish / Hour': int(caught / hours),
+                        'Fish Caught': tier_distribution
+                        }
+                    data.append(entry)
+        log.empty()
+        progress.empty()
+        st.session_state.simulation_df = pd.DataFrame(data)
+        st.session_state.simulation_df.to_csv('data/results.csv', index = False)
+
+    if st.session_state.simulation_df is None and os.path.exists('data/results.csv'):
+        st.session_state.simulation_df = pd.read_csv('data/results.csv')
+        
+    if st.session_state.simulation_df is not None:
+        
+        df = st.session_state.simulation_df
+        c1,c2 = st.columns(2)
+        c1.write('Results')
+        c1.dataframe(df)
+        avg_df = df.groupby('Level').agg({'XP / Hour': 'mean', 'Gold / Hour': 'mean', 'Fish / Hour': 'mean'}).reset_index()
+        avg_df[['XP / Hour', 'Gold / Hour', 'Fish / Hour']] = avg_df[['XP / Hour', 'Gold / Hour', 'Fish / Hour']].round()
+        avg_df['order'] = avg_df['Level'].apply(lambda x: list(levels.keys()).index(x))
+        avg_df = avg_df.sort_values(by = 'order', ascending= True)
+        c2.write('High-Level Results')
+        c2.dataframe(avg_df[['Level', 'XP / Hour', 'Gold / Hour', 'Fish / Hour']], hide_index= True)
