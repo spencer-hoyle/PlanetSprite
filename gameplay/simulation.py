@@ -1,3 +1,5 @@
+import random
+
 from gameplay.fish import Fish
 from gameplay.fish import get_fish_list
 from gameplay.fish import get_fish_pool
