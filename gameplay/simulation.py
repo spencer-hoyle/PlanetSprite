@@ -101,13 +101,14 @@ def simulate_biome_season(fish_list, biome, season, rod, bait):
         # spawn fish if it doesn't exist
         if fish is None:
             fish = spawn_fish(fish_pool, bait)
-            fish_tiers[fish.tier] += 1
+            
 
         caught, time_to_fish = simulate_fish_attempt(fish, rod, bait)
         
         if caught:
             xp += fish.xp
             gold += fish.gold_value
+            fish_tiers[fish.tier] += 1
             fish = None
 
         else:
