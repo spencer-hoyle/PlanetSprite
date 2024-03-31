@@ -27,11 +27,11 @@ class Fish:
 
     def calculate_attributes(self):
         tier_baseline = {
-            "Common":       {"xp": 100, "catch_rate": 0.80, "break_rate": 0.05, "common_rate": 0.90, "gold_value": 30},
-            "Uncommon":     {"xp": 150, "catch_rate": 0.60, "break_rate": 0.10, "common_rate": 0.75, "gold_value": 50},
-            "Rare":         {"xp": 200, "catch_rate": 0.50, "break_rate": 0.15, "common_rate": 0.50, "gold_value": 100},
-            "Epic":         {"xp": 300, "catch_rate": 0.35, "break_rate": 0.20, "common_rate": 0.40, "gold_value": 200},
-            "Legendary":    {"xp": 500, "catch_rate": 0.20, "break_rate": 0.25, "common_rate": 0.30, "gold_value": 400}
+            "Common":       {"xp": 100, "catch_rate": 0.80, "break_rate": 0.05, "common_rate": 0.90, "gold_value": 40},
+            "Uncommon":     {"xp": 150, "catch_rate": 0.60, "break_rate": 0.10, "common_rate": 0.75, "gold_value": 60},
+            "Rare":         {"xp": 200, "catch_rate": 0.50, "break_rate": 0.15, "common_rate": 0.50, "gold_value": 80},
+            "Epic":         {"xp": 300, "catch_rate": 0.35, "break_rate": 0.20, "common_rate": 0.40, "gold_value": 100},
+            "Legendary":    {"xp": 500, "catch_rate": 0.20, "break_rate": 0.25, "common_rate": 0.30, "gold_value": 220}
         }
 
         biome_boost = {
@@ -56,9 +56,9 @@ class Fish:
         self.common_rate = round(baseline['common_rate'] + boost['common_rate'],2)
         self.gold_value = round(int(baseline['gold_value'] * (1 + boost['gold_value']))/5) * 5
 
-def spawn_fish(fish_list):
+def spawn_fish(fish_list, bait):
     assert isinstance(fish_list, list) and all(isinstance(fish, Fish) for fish in fish_list)
-    spawn_weights = [f.common_rate for f in fish_list]
+    spawn_weights = [ min(f.common_rate + bait.get_common_booster(f),1) for f in fish_list]
     fish = random.choices(fish_list, weights = spawn_weights)
     return fish[0]
 

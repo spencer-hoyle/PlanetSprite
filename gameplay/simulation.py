@@ -1,8 +1,9 @@
 import random
 
-from gameplay.fish import Fish, FISH_TIERS
-from gameplay.fish import get_fish_list
-from gameplay.fish import get_fish_pools, get_fish_pool
+from gameplay.fish import Fish
+from gameplay.fish import FISH_TIERS
+from gameplay.fish import get_fish_pools
+from gameplay.fish import get_fish_pool
 from gameplay.fish import spawn_fish
 from gameplay.rod import Rod
 from gameplay.bait import Bait
@@ -34,7 +35,6 @@ def simulate_fish_attempt(fish: Fish, rod: Rod, bait: Bait):
     Returns:
         caught (boolean) - Whether or not the fish was caught
         time (int) - Number of seconds it took to fish
-
     """
     time = 0
 
@@ -45,7 +45,7 @@ def simulate_fish_attempt(fish: Fish, rod: Rod, bait: Bait):
     time += FISH_MOVE_TIMER
 
     # loop until fish bites
-    fish_bite_odds = fish.catch_rate + rod.catch_booster + bait.get_catch_booster(fish)
+    fish_bite_odds = min(fish.catch_rate + rod.catch_booster + bait.get_catch_booster(fish), 1)
     while random.random() > fish_bite_odds:
         time += round(random.uniform(MIN_DELAY_BEFORE_ATTEMPTING_ANOTHER_BITE, MAX_DELAY_BEFORE_ATTEMPTING_ANOTHER_BITE),1)
 
@@ -54,7 +54,7 @@ def simulate_fish_attempt(fish: Fish, rod: Rod, bait: Bait):
 
     # idle fishing game
     progress_bar = PROGRESS_BAR_START
-    break_rate = fish.break_rate + rod.break_booster
+    break_rate = max(fish.break_rate + rod.break_booster, 0)
 
     while progress_bar > PROGRESS_BAR_MIN and progress_bar < PROGRESS_BAR_MAX:
         time += IDLE_FISHING_TIMER
@@ -82,12 +82,14 @@ def simulate_biome_season(fish_list, biome, season, rod, bait):
         gold_per_hour (int) - Gold per hour gained
         fish_tiers (dict) - Number of fish caught per tier
     """
+    assert isinstance(rod, Rod), f"{rod} must be a Rod object"
+    assert isinstance(bait, Bait), f"{bait} must be a Bait object"
+
     fish_tiers = {tier: 0 for tier in FISH_TIERS}
     time_of_day = 'Day'
     weather = get_weather(season)
     fish_pools = get_fish_pools(fish_list)
     fish_pool = get_fish_pool(fish_pools, biome, season, weather, time_of_day)
-    print(fish_pool)
     fish = None
     xp = STARTING_XP
     gold = 0
@@ -98,14 +100,14 @@ def simulate_biome_season(fish_list, biome, season, rod, bait):
 
         # spawn fish if it doesn't exist
         if fish is None:
-            fish = spawn_fish(fish_pool)
+            fish = spawn_fish(fish_pool, bait)
+            fish_tiers[fish.tier] += 1
 
         caught, time_to_fish = simulate_fish_attempt(fish, rod, bait)
         
         if caught:
             xp += fish.xp
             gold += fish.gold_value
-            fish_tiers[fish.tier] += 1
             fish = None
 
         else:

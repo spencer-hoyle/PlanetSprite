@@ -15,6 +15,9 @@ class Bait:
 
     def get_catch_booster(self, fish):
         return self.catch_booster if fish in self.fish_list else 0
+
+    def get_common_booster(self, fish):
+        return self.common_booster if fish in self.fish_list else 0
     
 def get_bait_list(path, fish_list):
     assert isinstance(fish_list, list) and all(isinstance(fish, Fish) for fish in fish_list)

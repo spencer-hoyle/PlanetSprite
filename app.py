@@ -44,7 +44,7 @@ def get_fish_pools_df(fish_pools):
     df['Fish Pool'] = [[fish.id for fish in fish_list] for fish_list in df['Fish Pool']]
     return df
 
-t1, t2, t3 = st.tabs(['Fishing Objects', 'Fish Pools', 'Simulation'])
+t1, t2, t3, t4 = st.tabs(['Fishing Objects', 'Fish Pools', 'Simulation', 'Test'])
 with t1:
     fish_list = get_fish_list('data/fish.csv')
     rod_list = get_rod_list('data/rods.csv')
@@ -105,28 +105,36 @@ with t3:
     st.subheader('Levels')
     st.write('Representing rod and bait combination. As players level up, they will use better rods / bait')
     st.dataframe(levels_data)
-    total_sims = len(levels) * len(BIOMES) * len(SEASONS)
     sim = 0
 
     st.session_state.simulation_df = None
     st.subheader('Simulation')
     st.write('For every biome and season, simulates a player fishing with a specific rod and bait')
+    c1,c2,c3 = st.columns(3)
+    biome = c1.multiselect('Biome', BIOMES, key = 'biome_loop')
+    season = c2.multiselect('Season', SEASONS, key = 'season_loop')
+
+    biome_loop = biome if biome else BIOMES
+    season_loop = season if season else SEASONS
+    total_sims = len(levels) * len(biome_loop) * len(season_loop)
+
     if st.button('Run'):
         log = st.empty()
         progress = st.empty()
         pct = st.empty()
         
         data = []
+        
         for level, items in levels.items():
-            rod = [rod for rod in rod_list if rod.id == items[0]]
-            bait = [bait for bait in bait_list if bait.id == items[0]]
-            for biome in BIOMES:
-                for season in SEASONS:
+            rod = [rod for rod in rod_list if rod.id == items[0]][0]
+            bait = [bait for bait in bait_list if bait.id == items[1]][0]
+            for biome in biome_loop:
+                for season in season_loop:
                     sim += 1
                     progress.progress(sim/total_sims)
                     log.write(f'simulating {level}, {biome}, {season}...')
                     pct.write(str(round((sim/total_sims) * 100,2)) + '%')
-                    hours, xp_per_hour, gold_per_hour, tiers = simulate_biome_season(fish_list, biome,season, rod_list[0], bait_list[0])
+                    hours, xp_per_hour, gold_per_hour, tiers = simulate_biome_season(fish_list, biome,season, rod, bait)
 
                     caught = sum(tiers.values())
                     tier_distribution = [f"{tier} ({round(count/caught * 100)}%)" for tier, count in tiers.items() if count > 0]
@@ -140,44 +148,46 @@ with t3:
                         'Gold / Hour': gold_per_hour,
                         'Fish / Hour': int(caught / hours),
                         'Fish Caught': tier_distribution,
-                        'tiers': ['Common|1', 'Common|2'] #[f"{tier}|{count}" for tier, count in tiers.items()]
+                        'tiers': tiers
                         }
                     data.append(entry)
         log.empty()
         progress.empty()
+        pct.empty()
         st.session_state.simulation_df = pd.DataFrame(data)
-        st.session_state.simulation_df.to_csv('data/results.csv', index = False)
+        json_data = st.session_state.simulation_df.to_json(orient='records')
 
-    if st.session_state.simulation_df is None and os.path.exists('data/results.csv'):
-        df = pd.read_csv('data/results.csv')
-        st.session_state.simulation_df = df
-        
+        # Write JSON data to a file
+        with open('data/results.json', 'w') as file:
+            file.write(json_data)
+
+    elif os.path.exists('data/results.json'):
+        st.session_state.simulation_df = pd.read_json('data/results.json')
+    
     if st.session_state.simulation_df is not None:
 
         df = st.session_state.simulation_df
         st.write('Results')
 
         c1,c2,c3 = st.columns(3)
-        biome = c1.multiselect('Biome', BIOMES, key = 'result_biome')
-        season = c2.multiselect('Season', SEASONS, key = 'result_season')
+        #biome = c1.multiselect('Biome', BIOMES, key = 'result_biome')
+        #season = c2.multiselect('Season', SEASONS, key = 'result_season')
         
-        if biome:
-            df = df[df['Biome'].isin(biome)]
-        if season:
-            df = df[df['Season'].isin(season)]
+        #if biome:
+        #    df = df[df['Biome'].isin(biome)]
+        #if season:
+        #    df = df[df['Season'].isin(season)]
 
-        def sum_fish_caught(tiers):
-            results = {tier:0 for tier in FISH_TIERS}
-            for t in tiers:
-                t = t.replace("[", "").replace("]", "").replace("'", "").replace(" ", "").split(",")
-                for d in t:
-                    d = d.split('|')
-                    results[d[0]] += int(d[1])
+        def sum_fish_caught(alL_tiers):
+            results = {tier:0 for tier in FISH_TIERS}           
+            for tiers in alL_tiers:
+                for tier, count in tiers.items():
+                    results[tier] += count
             caught = sum(results.values())
             tier_distribution = [f"{tier} ({round(count/caught * 100)}%)" for tier, count in results.items() if count > 0]
             return tier_distribution
 
-        st.dataframe(df[[c for c in df.columns if c not in ['tiers']]])
+        st.dataframe(df[[c for c in df.columns if c not in ['tiers']]], use_container_width=True)
         avg_df = df.groupby('Level').agg({'XP / Hour': 'mean', 'Gold / Hour': 'mean', 'Fish / Hour': 'mean', 'tiers': sum_fish_caught}).reset_index()
         avg_df[['XP / Hour', 'Gold / Hour', 'Fish / Hour']] = avg_df[['XP / Hour', 'Gold / Hour', 'Fish / Hour']].round()
         avg_df['order'] = avg_df['Level'].apply(lambda x: list(levels.keys()).index(x))
