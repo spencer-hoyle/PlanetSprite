@@ -44,7 +44,7 @@ def get_fish_pools_df(fish_pools):
     df['Fish Pool'] = [[fish.id for fish in fish_list] for fish_list in df['Fish Pool']]
     return df
 
-t1, t2, t3, t4 = st.tabs(['Fishing Objects', 'Fish Pools', 'Simulation', 'Test'])
+t1, t2, t3 = st.tabs(['Fishing Objects', 'Fish Pools', 'Simulation'])
 with t1:
     fish_list = get_fish_list('data/fish.csv')
     rod_list = get_rod_list('data/rods.csv')
